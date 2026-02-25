@@ -7,10 +7,10 @@ ENV LANG=C.UTF-8 \
 
 RUN apk add --no-cache \
     chromium \
-    xvfb \
-    x11vnc \
-    fluxbox \
+    tigervnc \
+    openbox \
     novnc \
+    websockify \
     ttf-freefont \
     dbus
 

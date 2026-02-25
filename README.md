@@ -1,20 +1,23 @@
 # ChromeHA
 
-Репозиторій Home Assistant add-on для запуску Chromium через Ingress/noVNC.
+Репозиторій Home Assistant add-on для запуску **Chromium** через Ingress/noVNC.
 
-## Що виправлено для стабільності
+## Що перероблено (на основі підходу з bigmoby/addon-embedded-browser)
 
-- Add-on винесений у правильну директорію `chromium/` (вимога HA для custom repository).
-- Режим запуску змінено на **manual** (`boot: manual`), щоб Chromium не стартував автоматично при інсталяції/перезапуску HA.
-- Додано більш сумісний запуск Chromium (`--no-sandbox`, авто-вибір `chromium-browser|chromium`).
-- Підтримувані архітектури звужені до `amd64` та `aarch64` для зменшення ризику проблем під час встановлення.
+Щоб прибрати «гальма» інтерфейсу, add-on перероблено на легший VNC-пайплайн:
+
+- замість `Xvfb + fluxbox + x11vnc` тепер використовується **TigerVNC server**;
+- web-клієнт працює через **websockify + noVNC**;
+- браузер запускається в X-сесії TigerVNC з легким WM **openbox**;
+- Ingress відкриває `vnc_lite.html` з параметрами стиснення/якості для кращої швидкодії;
+- додано опцію `color_depth` (`16` або `24`), за замовчуванням `16` для вищої продуктивності.
 
 ## Структура
 
 - `repository.yaml` — опис репозиторію.
 - `chromium/config.json` — конфіг add-on.
 - `chromium/Dockerfile` — збірка контейнера.
-- `chromium/run.sh` — запуск Xvfb + VNC + noVNC + Chromium.
+- `chromium/run.sh` — запуск TigerVNC + noVNC + Chromium.
 
 ## Встановлення
 
@@ -22,29 +25,24 @@
 2. Додайте URL цього репозиторію.
 3. Відкрийте add-on **Chromium Browser**.
 4. Натисніть **Install**.
-5. Після встановлення відкрийте **Configuration** (за потреби), потім натисніть **Start** вручну.
+5. Відкрийте **Configuration** (за потреби), потім натисніть **Start**.
 6. Увімкніть **Show in sidebar**.
 
 ## Опції add-on
-
-> Примітка: add-on відкриває noVNC через `ingress_entry` (`/vnc.html?...`) для стабільного завантаження Ingress-панелі.
-
 
 ```yaml
 start_url: "https://www.home-assistant.io"
 window_width: 1280
 window_height: 720
+color_depth: 16   # 16 швидше, 24 якісніше
 kiosk: false
 incognito: false
 disable_gpu: true
 vnc_password: "homeassistant"
 ```
 
+## Нотатки продуктивності
 
-## Діагностика падінь
-
-- Якщо вкладка Ingress біла або add-on зупиняється, перегляньте логи add-on: тепер у лог виводяться останні рядки `xvfb`, `x11vnc`, `novnc` та `chromium` при помилках.
-- Додано автоматичний перезапуск Chromium, тому короткі падіння браузера не повинні зупиняти весь add-on.
-
-
-> Примітка: у репозиторії не використовуються бінарні `icon.png/logo.png`; для відображення використовується `panel_icon` із MDI у `config.json`.
+- Найшвидший режим зазвичай: `color_depth: 16` + `disable_gpu: true`.
+- Якщо на вашому host є стабільний GPU passthrough, можна спробувати `disable_gpu: false`.
+- Якщо Chromium падає, add-on автоматично перезапускає браузер без повного стопу контейнера.

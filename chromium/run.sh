@@ -7,6 +7,7 @@ HEIGHT="$(bashio::config 'window_height')"
 KIOSK="$(bashio::config 'kiosk')"
 INCOGNITO="$(bashio::config 'incognito')"
 DISABLE_GPU="$(bashio::config 'disable_gpu')"
+COLOR_DEPTH="$(bashio::config 'color_depth')"
 VNC_PASSWORD="$(bashio::config 'vnc_password')"
 
 mkdir -p "${CHROME_USER_DATA_DIR}" /tmp/chrome
@@ -20,46 +21,69 @@ else
   exit 1
 fi
 
-bashio::log.info "Starting virtual display ${WIDTH}x${HEIGHT}"
-Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
-XVFB_PID=$!
+cat > /tmp/xstartup <<'XSTART'
+#!/usr/bin/env sh
+openbox-session &
+XSTART
+chmod +x /tmp/xstartup
 
-# Give Xvfb time to initialize before other X clients start.
-sleep 1
+if command -v tigervncserver >/dev/null 2>&1; then
+  VNCSERVER_CMD="tigervncserver"
+elif command -v vncserver >/dev/null 2>&1; then
+  VNCSERVER_CMD="vncserver"
+else
+  bashio::log.error "TigerVNC server binary not found"
+  exit 1
+fi
 
-fluxbox >/tmp/fluxbox.log 2>&1 &
-FLUXBOX_PID=$!
+# Configure VNC password file (or disable auth when empty string is provided).
+VNC_AUTH_ARGS=(-SecurityTypes VncAuth)
+if [ -n "${VNC_PASSWORD}" ]; then
+  if command -v vncpasswd >/dev/null 2>&1; then
+    printf '%s' "${VNC_PASSWORD}" | vncpasswd -f > /tmp/vnc.pass 2>/dev/null || true
+    chmod 600 /tmp/vnc.pass 2>/dev/null || true
+  fi
+  if [ -s /tmp/vnc.pass ]; then
+    VNC_AUTH_ARGS=(-PasswordFile /tmp/vnc.pass)
+  else
+    bashio::log.warning "Could not create VNC password file; fallback to no auth"
+    VNC_AUTH_ARGS=(-SecurityTypes None --I-KNOW-THIS-IS-INSECURE)
+  fi
+else
+  VNC_AUTH_ARGS=(-SecurityTypes None --I-KNOW-THIS-IS-INSECURE)
+fi
 
-x11vnc -display :0 -rfbport 5900 -forever -shared -passwd "${VNC_PASSWORD}" >/tmp/x11vnc.log 2>&1 &
+bashio::log.info "Starting TigerVNC ${WIDTH}x${HEIGHT} depth=${COLOR_DEPTH}"
+"${VNCSERVER_CMD}" \
+  -geometry "${WIDTH}x${HEIGHT}" \
+  -depth "${COLOR_DEPTH}" \
+  -localhost no \
+  -xstartup /tmp/xstartup \
+  "${VNC_AUTH_ARGS[@]}" \
+  "${DISPLAY}" >/tmp/tigervnc.log 2>&1 &
 VNC_PID=$!
 
-NOVNC_PATH="/usr/share/novnc"
-if [ -x "${NOVNC_PATH}/utils/novnc_proxy" ]; then
-  "${NOVNC_PATH}/utils/novnc_proxy" --listen 6080 --vnc localhost:5900 >/tmp/novnc.log 2>&1 &
-else
-  websockify --web "${NOVNC_PATH}" 6080 localhost:5900 >/tmp/novnc.log 2>&1 &
+# Wait VNC to be ready.
+for _ in $(seq 1 30); do
+  if nc -z 127.0.0.1 5900 >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+if ! nc -z 127.0.0.1 5900 >/dev/null 2>&1; then
+  bashio::log.error "TigerVNC failed to start"
+  tail -n 100 /tmp/tigervnc.log 2>/dev/null || true
+  exit 1
 fi
+
+bashio::log.info "Starting websockify/noVNC"
+websockify --web /usr/share/novnc 6080 127.0.0.1:5900 >/tmp/novnc.log 2>&1 &
 NOVNC_PID=$!
 
-for svc in XVFB_PID FLUXBOX_PID VNC_PID NOVNC_PID; do
-  pid="${!svc}"
-  if ! kill -0 "${pid}" 2>/dev/null; then
-    bashio::log.error "${svc} failed to start (pid ${pid})."
-    bashio::log.error "xvfb log:"; tail -n 50 /tmp/xvfb.log 2>/dev/null || true
-    bashio::log.error "fluxbox log:"; tail -n 50 /tmp/fluxbox.log 2>/dev/null || true
-    bashio::log.error "x11vnc log:"; tail -n 50 /tmp/x11vnc.log 2>/dev/null || true
-    bashio::log.error "novnc log:"; tail -n 50 /tmp/novnc.log 2>/dev/null || true
-    exit 1
-  fi
-done
-
 CHROME_FLAGS=(
-  --no-sandbox
-  --disable-setuid-sandbox
   --no-first-run
   --no-default-browser-check
   --disable-dev-shm-usage
-  --disable-software-rasterizer
   --disable-translate
   --disable-features=TranslateUI
   --window-size="${WIDTH},${HEIGHT}"
@@ -69,43 +93,37 @@ CHROME_FLAGS=(
 if bashio::var.true "${KIOSK}"; then
   CHROME_FLAGS+=(--kiosk)
 fi
-
 if bashio::var.true "${INCOGNITO}"; then
   CHROME_FLAGS+=(--incognito)
 fi
-
 if bashio::var.true "${DISABLE_GPU}"; then
-  CHROME_FLAGS+=(--disable-gpu)
+  CHROME_FLAGS+=(--disable-gpu --disable-software-rasterizer)
 fi
-
 if [ -e /dev/dri ]; then
   CHROME_FLAGS+=(--use-gl=egl)
 fi
 
 cleanup() {
   bashio::log.info "Stopping services"
-  kill "${CHROME_PID:-}" "${NOVNC_PID}" "${VNC_PID}" "${FLUXBOX_PID}" "${XVFB_PID}" 2>/dev/null || true
+  kill "${CHROME_PID:-}" "${NOVNC_PID:-}" "${VNC_PID:-}" 2>/dev/null || true
+  "${VNCSERVER_CMD}" -kill "${DISPLAY}" >/dev/null 2>&1 || true
 }
-
 trap cleanup SIGTERM SIGINT
 
-# Keep add-on alive even if Chromium crashes once; restart browser automatically.
 while true; do
   bashio::log.info "Starting Chromium at ${START_URL}"
-  "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_URL}" >/tmp/chromium.log 2>&1 &
+  DISPLAY="${DISPLAY}" "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_URL}" >/tmp/chromium.log 2>&1 &
   CHROME_PID=$!
 
   wait "${CHROME_PID}" || true
-  bashio::log.warning "Chromium exited. Restarting in 3 seconds..."
-  tail -n 50 /tmp/chromium.log 2>/dev/null || true
-  sleep 3
+  bashio::log.warning "Chromium exited. Restart in 2s"
+  tail -n 60 /tmp/chromium.log 2>/dev/null || true
+  sleep 2
 
-  # Stop loop if any core service has died; container should then restart.
-  if ! kill -0 "${XVFB_PID}" 2>/dev/null || ! kill -0 "${VNC_PID}" 2>/dev/null || ! kill -0 "${NOVNC_PID}" 2>/dev/null; then
-    bashio::log.error "One of the core services stopped unexpectedly."
-    bashio::log.error "xvfb log:"; tail -n 50 /tmp/xvfb.log 2>/dev/null || true
-    bashio::log.error "x11vnc log:"; tail -n 50 /tmp/x11vnc.log 2>/dev/null || true
-    bashio::log.error "novnc log:"; tail -n 50 /tmp/novnc.log 2>/dev/null || true
+  if ! kill -0 "${NOVNC_PID}" 2>/dev/null || ! kill -0 "${VNC_PID}" 2>/dev/null; then
+    bashio::log.error "Core VNC services stopped"
+    tail -n 100 /tmp/tigervnc.log 2>/dev/null || true
+    tail -n 100 /tmp/novnc.log 2>/dev/null || true
     exit 1
   fi
 done
