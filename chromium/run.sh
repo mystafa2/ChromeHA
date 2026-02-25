@@ -39,6 +39,8 @@ fi
 NOVNC_PID=$!
 
 CHROME_FLAGS=(
+  --no-sandbox
+  --disable-setuid-sandbox
   --no-first-run
   --no-default-browser-check
   --disable-dev-shm-usage
@@ -64,6 +66,9 @@ fi
 if [ -e /dev/dri ]; then
   CHROME_FLAGS+=(--use-gl=egl)
 fi
+
+# Give window manager/VNC stack a moment to initialize.
+sleep 1
 
 bashio::log.info "Starting Chromium at ${START_URL}"
 "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_URL}" >/tmp/chromium.log 2>&1 &
