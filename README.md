@@ -27,6 +27,9 @@
 
 ## Опції add-on
 
+> Примітка: add-on відкриває noVNC через `ingress_entry` (`/vnc.html?...`) для стабільного завантаження Ingress-панелі.
+
+
 ```yaml
 start_url: "https://www.home-assistant.io"
 window_width: 1280
@@ -42,3 +45,6 @@ vnc_password: "homeassistant"
 
 - Якщо вкладка Ingress біла або add-on зупиняється, перегляньте логи add-on: тепер у лог виводяться останні рядки `xvfb`, `x11vnc`, `novnc` та `chromium` при помилках.
 - Додано автоматичний перезапуск Chromium, тому короткі падіння браузера не повинні зупиняти весь add-on.
+
+
+> Примітка: у репозиторії не використовуються бінарні `icon.png/logo.png`; для відображення використовується `panel_icon` із MDI у `config.json`.
