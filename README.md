@@ -46,3 +46,17 @@ vnc_password: "homeassistant"
 - Найшвидший режим зазвичай: `color_depth: 16` + `disable_gpu: true`.
 - Якщо на вашому host є стабільний GPU passthrough, можна спробувати `disable_gpu: false`.
 - Якщо Chromium падає, add-on автоматично перезапускає браузер без повного стопу контейнера.
+
+
+## Якщо збірка падає з `TLS handshake timeout`
+
+Це мережева проблема доступу HA Supervisor до `ghcr.io`, а не помилка логіки add-on.
+
+Що зроблено в цьому репозиторії:
+- у `Dockerfile` додано безпечний default для `ARG BUILD_FROM`, щоб прибрати попередження `InvalidDefaultArgInFrom`;
+- у Home Assistant значення `BUILD_FROM` все одно підставляється Supervisor-ом під вашу архітектуру.
+
+Що зробити у HA:
+- повторити install/build через 1-2 хвилини;
+- перевірити DNS/інтернет на хості HA;
+- якщо є проксі/фаєрвол — дозволити доступ до `https://ghcr.io` і `https://github.com`.

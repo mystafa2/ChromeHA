@@ -1,6 +1,6 @@
 {
   "name": "Chromium Browser",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "slug": "chromium_ha",
   "description": "Запускає Chromium у Home Assistant через noVNC (Ingress)",
   "url": "https://github.com/example/ChromeHA",
