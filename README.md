@@ -50,9 +50,11 @@ vnc_password: "homeassistant"
 
 ## Якщо збірка падає з `TLS handshake timeout`
 
-Це мережева проблема доступу HA Supervisor до `ghcr.io`, а не помилка логіки add-on.
+Це мережева проблема доступу HA Supervisor до `ghcr.io`/alpine-дзеркал, а не помилка логіки add-on.
 
 Що зроблено в цьому репозиторії:
+
+- у Dockerfile додано retry-логіку для `apk add` (до 5 спроб) через нестабільні TLS/дзеркала на великих пакетах Chromium.
 - у `Dockerfile` додано безпечний default для `ARG BUILD_FROM`, щоб прибрати попередження `InvalidDefaultArgInFrom`;
 - у Home Assistant значення `BUILD_FROM` все одно підставляється Supervisor-ом під вашу архітектуру.
 
