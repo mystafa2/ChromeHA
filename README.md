@@ -1,27 +1,26 @@
 # ChromeHA
 
-Home Assistant add-on, який запускає браузер Chromium у віртуальному X11-дисплеї та відкриває його через noVNC в Ingress.
+Репозиторій Home Assistant add-on для запуску Chromium через Ingress/noVNC.
 
-## Що це дає
+## Чому раніше не встановлювалось
 
-- Запуск Chromium прямо в Home Assistant Add-on.
-- Доступ до браузера через **Sidebar / Ingress**.
-- Налаштування стартової URL, розміру вікна, kiosk/incognito режимів.
+Home Assistant очікує структуру **репозиторію add-on'ів**: кожен add-on має бути в окремій директорії.
+Тому add-on перенесено в папку `chromium/`.
 
-## Структура репозиторію
+## Структура
 
-- `repository.yaml` — метаінформація репозиторію add-on'ів.
-- `config.json` — конфіг add-on для Home Assistant.
-- `Dockerfile` — збірка контейнера.
-- `run.sh` — старт Xvfb, VNC, noVNC та Chromium.
+- `repository.yaml` — опис репозиторію.
+- `chromium/config.json` — конфіг add-on.
+- `chromium/Dockerfile` — збірка контейнера.
+- `chromium/run.sh` — запуск Xvfb + VNC + noVNC + Chromium.
 
-## Встановлення в Home Assistant
+## Встановлення
 
-1. В Home Assistant: **Settings → Add-ons → Add-on Store → ⋮ → Repositories**.
+1. **Settings → Add-ons → Add-on Store → ⋮ → Repositories**
 2. Додайте URL цього репозиторію.
 3. Відкрийте add-on **Chromium Browser**.
-4. Натисніть **Install**, потім **Start**.
-5. Увімкніть **Show in sidebar**, щоб відкривати Chromium з меню HA.
+4. Натисніть **Install** → **Start**.
+5. За потреби увімкніть **Show in sidebar**.
 
 ## Опції add-on
 
@@ -34,8 +33,3 @@ incognito: false
 disable_gpu: true
 vnc_password: "homeassistant"
 ```
-
-## Примітки
-
-- Chromium працює всередині контейнера, тому вебкамери/USB-пристрої можуть потребувати додаткових прав та мапінгів.
-- Для важких сайтів збільште ресурси host-системи та вимкніть `disable_gpu`, якщо є апаратне прискорення.
