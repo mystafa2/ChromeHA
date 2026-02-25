@@ -21,8 +21,11 @@ else
 fi
 
 bashio::log.info "Starting virtual display ${WIDTH}x${HEIGHT}"
-Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac +extension GLX +render -noreset &
+Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
 XVFB_PID=$!
+
+# Give Xvfb time to initialize before other X clients start.
+sleep 1
 
 fluxbox >/tmp/fluxbox.log 2>&1 &
 FLUXBOX_PID=$!
@@ -37,6 +40,18 @@ else
   websockify --web "${NOVNC_PATH}" 6080 localhost:5900 >/tmp/novnc.log 2>&1 &
 fi
 NOVNC_PID=$!
+
+for svc in XVFB_PID FLUXBOX_PID VNC_PID NOVNC_PID; do
+  pid="${!svc}"
+  if ! kill -0 "${pid}" 2>/dev/null; then
+    bashio::log.error "${svc} failed to start (pid ${pid})."
+    bashio::log.error "xvfb log:"; tail -n 50 /tmp/xvfb.log 2>/dev/null || true
+    bashio::log.error "fluxbox log:"; tail -n 50 /tmp/fluxbox.log 2>/dev/null || true
+    bashio::log.error "x11vnc log:"; tail -n 50 /tmp/x11vnc.log 2>/dev/null || true
+    bashio::log.error "novnc log:"; tail -n 50 /tmp/novnc.log 2>/dev/null || true
+    exit 1
+  fi
+done
 
 CHROME_FLAGS=(
   --no-sandbox
@@ -67,20 +82,30 @@ if [ -e /dev/dri ]; then
   CHROME_FLAGS+=(--use-gl=egl)
 fi
 
-# Give window manager/VNC stack a moment to initialize.
-sleep 1
-
-bashio::log.info "Starting Chromium at ${START_URL}"
-"${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_URL}" >/tmp/chromium.log 2>&1 &
-CHROME_PID=$!
-
 cleanup() {
   bashio::log.info "Stopping services"
-  kill "${CHROME_PID}" "${NOVNC_PID}" "${VNC_PID}" "${FLUXBOX_PID}" "${XVFB_PID}" 2>/dev/null || true
+  kill "${CHROME_PID:-}" "${NOVNC_PID}" "${VNC_PID}" "${FLUXBOX_PID}" "${XVFB_PID}" 2>/dev/null || true
 }
 
 trap cleanup SIGTERM SIGINT
 
-wait -n "${CHROME_PID}" "${NOVNC_PID}" "${VNC_PID}" "${FLUXBOX_PID}" "${XVFB_PID}"
-cleanup
-wait || true
+# Keep add-on alive even if Chromium crashes once; restart browser automatically.
+while true; do
+  bashio::log.info "Starting Chromium at ${START_URL}"
+  "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_URL}" >/tmp/chromium.log 2>&1 &
+  CHROME_PID=$!
+
+  wait "${CHROME_PID}" || true
+  bashio::log.warning "Chromium exited. Restarting in 3 seconds..."
+  tail -n 50 /tmp/chromium.log 2>/dev/null || true
+  sleep 3
+
+  # Stop loop if any core service has died; container should then restart.
+  if ! kill -0 "${XVFB_PID}" 2>/dev/null || ! kill -0 "${VNC_PID}" 2>/dev/null || ! kill -0 "${NOVNC_PID}" 2>/dev/null; then
+    bashio::log.error "One of the core services stopped unexpectedly."
+    bashio::log.error "xvfb log:"; tail -n 50 /tmp/xvfb.log 2>/dev/null || true
+    bashio::log.error "x11vnc log:"; tail -n 50 /tmp/x11vnc.log 2>/dev/null || true
+    bashio::log.error "novnc log:"; tail -n 50 /tmp/novnc.log 2>/dev/null || true
+    exit 1
+  fi
+done

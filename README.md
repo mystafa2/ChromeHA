@@ -36,3 +36,9 @@ incognito: false
 disable_gpu: true
 vnc_password: "homeassistant"
 ```
+
+
+## Діагностика падінь
+
+- Якщо вкладка Ingress біла або add-on зупиняється, перегляньте логи add-on: тепер у лог виводяться останні рядки `xvfb`, `x11vnc`, `novnc` та `chromium` при помилках.
+- Додано автоматичний перезапуск Chromium, тому короткі падіння браузера не повинні зупиняти весь add-on.
