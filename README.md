@@ -68,3 +68,5 @@ vnc_password: "homeassistant"
 
 - Якщо `TigerVNC` не стартує на конкретному host/архітектурі, add-on автоматично переключається на fallback `Xvfb + x11vnc` і продовжує роботу.
 - У логах тепер видно причину падіння `TigerVNC` перед переключенням на fallback.
+
+- Для fallback `x11vnc` додано запуск з `-auth guess` і перевірку сокета `/tmp/.X11-unix/X0`, що прибирає типову помилку `XOpenDisplay(":0") failed`.

@@ -90,7 +90,19 @@ start_xvfb_fallback() {
   bashio::log.info "Starting fallback backend: Xvfb + x11vnc"
   Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
   XVFB_PID=$!
-  sleep 1
+
+  for _ in $(seq 1 20); do
+    if [ -S /tmp/.X11-unix/X0 ]; then
+      break
+    fi
+    sleep 1
+  done
+
+  if [ ! -S /tmp/.X11-unix/X0 ]; then
+    bashio::log.error "Xvfb did not create display socket :0"
+    tail -n 120 /tmp/xvfb.log 2>/dev/null || true
+    return 1
+  fi
 
   if command -v openbox-session >/dev/null 2>&1; then
     openbox-session >/tmp/wm.log 2>&1 &
@@ -100,7 +112,14 @@ start_xvfb_fallback() {
     WM_PID=$!
   fi
 
-  x11vnc -display :0 -rfbport 5900 -forever -shared -passwd "${VNC_PASSWORD}" >/tmp/x11vnc.log 2>&1 &
+  local x11vnc_args=(-display :0 -rfbport 5900 -forever -shared -auth guess)
+  if [ -n "${VNC_PASSWORD}" ]; then
+    x11vnc_args+=(-passwd "${VNC_PASSWORD}")
+  else
+    x11vnc_args+=(-nopw)
+  fi
+
+  x11vnc "${x11vnc_args[@]}" >/tmp/x11vnc.log 2>&1 &
   VNC_PID=$!
 
   for _ in $(seq 1 20); do
