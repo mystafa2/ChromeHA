@@ -6,7 +6,7 @@ ENV LANG=C.UTF-8 \
     CHROME_USER_DATA_DIR=/data/chromium
 
 RUN set -eux; \
-    packages='chromium tigervnc openbox novnc websockify ttf-freefont dbus'; \
+    packages='chromium tigervnc openbox novnc websockify ttf-freefont dbus xvfb x11vnc fluxbox'; \
     attempt=1; \
     max_attempts=5; \
     while [ "${attempt}" -le "${max_attempts}" ]; do \
