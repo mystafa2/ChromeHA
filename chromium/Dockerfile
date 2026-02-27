@@ -6,7 +6,7 @@ ENV LANG=C.UTF-8 \
     CHROME_USER_DATA_DIR=/data/chromium
 
 RUN set -eux; \
-    packages='chromium tigervnc openbox novnc websockify ttf-freefont dbus xvfb x11vnc fluxbox'; \
+    packages='chromium xvfb x11vnc fluxbox novnc websockify ttf-freefont dbus xauth'; \
     attempt=1; \
     max_attempts=5; \
     while [ "${attempt}" -le "${max_attempts}" ]; do \
@@ -18,7 +18,6 @@ RUN set -eux; \
         echo "[build] apk install failed after ${max_attempts} attempts"; \
         exit 1; \
       fi; \
-      echo "[build] apk install failed, retrying in $((attempt * 10))s"; \
       sleep $((attempt * 10)); \
       attempt=$((attempt + 1)); \
     done

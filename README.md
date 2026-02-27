@@ -2,22 +2,27 @@
 
 Репозиторій Home Assistant add-on для запуску **Chromium** через Ingress/noVNC.
 
-## Що перероблено (на основі підходу з bigmoby/addon-embedded-browser)
+## Що змінено для стабільного запуску
 
-Щоб прибрати «гальма» інтерфейсу, add-on перероблено на легший VNC-пайплайн:
+Після проблем зі стартом `TigerVNC`/`x11vnc -auth guess` add-on переведено на стабільніший сценарій:
 
-- замість `Xvfb + fluxbox + x11vnc` тепер використовується **TigerVNC server**;
-- web-клієнт працює через **websockify + noVNC**;
-- браузер запускається в X-сесії TigerVNC з легким WM **openbox**;
-- Ingress відкриває `vnc_lite.html` з параметрами стиснення/якості для кращої швидкодії;
-- додано опцію `color_depth` (`16` або `24`), за замовчуванням `16` для вищої продуктивності.
+- `Xvfb` як X-сервер;
+- явний `XAUTHORITY` файл через `xauth` + `mcookie`;
+- `x11vnc` підключається через `-auth /tmp/Xauthority` (без guess);
+- автоматичне очищення stale lock/socket (`/tmp/.X0-lock`, `/tmp/.X11-unix/X0`) перед стартом;
+- `websockify + noVNC` для Ingress.
+
+Це прибирає типові падіння:
+- `usage: vncserver <display>`
+- `XOpenDisplay(":0") failed`
+- `Xvfb did not create display socket :0` (через старі lock-файли).
 
 ## Структура
 
 - `repository.yaml` — опис репозиторію.
 - `chromium/config.json` — конфіг add-on.
 - `chromium/Dockerfile` — збірка контейнера.
-- `chromium/run.sh` — запуск TigerVNC + noVNC + Chromium.
+- `chromium/run.sh` — запуск Xvfb + x11vnc + noVNC + Chromium.
 
 ## Встановлення
 
@@ -34,39 +39,12 @@
 start_url: "https://www.home-assistant.io"
 window_width: 1280
 window_height: 720
-color_depth: 16   # 16 швидше, 24 якісніше
 kiosk: false
 incognito: false
 disable_gpu: true
 vnc_password: "homeassistant"
 ```
 
-## Нотатки продуктивності
+## Збірка
 
-- Найшвидший режим зазвичай: `color_depth: 16` + `disable_gpu: true`.
-- Якщо на вашому host є стабільний GPU passthrough, можна спробувати `disable_gpu: false`.
-- Якщо Chromium падає, add-on автоматично перезапускає браузер без повного стопу контейнера.
-
-
-## Якщо збірка падає з `TLS handshake timeout`
-
-Це мережева проблема доступу HA Supervisor до `ghcr.io`/alpine-дзеркал, а не помилка логіки add-on.
-
-Що зроблено в цьому репозиторії:
-
-- у Dockerfile додано retry-логіку для `apk add` (до 5 спроб) через нестабільні TLS/дзеркала на великих пакетах Chromium.
-- у `Dockerfile` додано безпечний default для `ARG BUILD_FROM`, щоб прибрати попередження `InvalidDefaultArgInFrom`;
-- у Home Assistant значення `BUILD_FROM` все одно підставляється Supervisor-ом під вашу архітектуру.
-
-Що зробити у HA:
-- повторити install/build через 1-2 хвилини;
-- перевірити DNS/інтернет на хості HA;
-- якщо є проксі/фаєрвол — дозволити доступ до `https://ghcr.io` і `https://github.com`.
-
-
-## Надійність запуску
-
-- Якщо `TigerVNC` не стартує на конкретному host/архітектурі, add-on автоматично переключається на fallback `Xvfb + x11vnc` і продовжує роботу.
-- У логах тепер видно причину падіння `TigerVNC` перед переключенням на fallback.
-
-- Для fallback `x11vnc` додано запуск з `-auth guess` і перевірку сокета `/tmp/.X11-unix/X0`, що прибирає типову помилку `XOpenDisplay(":0") failed`.
+У Dockerfile лишено retry-логіку `apk add` (до 5 спроб), щоб переживати тимчасові TLS/дзеркальні збої під час завантаження великих пакетів Chromium.
