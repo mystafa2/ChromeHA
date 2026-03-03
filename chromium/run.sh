@@ -9,6 +9,7 @@ INCOGNITO="$(bashio::config 'incognito')"
 DISABLE_GPU="$(bashio::config 'disable_gpu')"
 VNC_PASSWORD="$(bashio::config 'vnc_password')"
 RESET_PROFILE_ON_START="$(bashio::config 'reset_profile_on_start')"
+FORCE_TAB_BAR="$(bashio::config 'force_tab_bar')"
 
 mkdir -p "${CHROME_USER_DATA_DIR}" /tmp/chrome /tmp/.X11-unix
 
@@ -111,6 +112,13 @@ if [ -e /dev/dri ]; then
   CHROME_FLAGS+=(--use-gl=egl)
 fi
 
+
+START_TARGETS=("${START_URL}")
+if bashio::var.true "${FORCE_TAB_BAR}"; then
+  # Open an extra blank tab so Chromium always shows tab strip in remote UI.
+  START_TARGETS=("about:blank" "${START_URL}")
+fi
+
 cleanup() {
   bashio::log.info "Stopping services"
   kill "${CHROME_PID:-}" "${NOVNC_PID:-}" "${VNC_PID:-}" "${WM_PID:-}" "${XVFB_PID:-}" 2>/dev/null || true
@@ -119,7 +127,7 @@ trap cleanup SIGTERM SIGINT
 
 while true; do
   bashio::log.info "Starting Chromium at ${START_URL}"
-  DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_URL}" >/tmp/chromium.log 2>&1 &
+  DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_TARGETS[@]}" >/tmp/chromium.log 2>&1 &
   CHROME_PID=$!
 
   wait "${CHROME_PID}" || true

@@ -46,6 +46,7 @@ incognito: false
 disable_gpu: true
 vnc_password: "homeassistant"
 reset_profile_on_start: false
+force_tab_bar: true
 ```
 
 ## Збірка
@@ -63,3 +64,5 @@ reset_profile_on_start: false
 
 - У `config.json` встановлено `panel_admin: false`, тому вкладка add-on видима не лише адміну.
 - Якщо браузер відкривається без звичних вкладок (збережений app/session режим), увімкніть `reset_profile_on_start: true` і перезапустіть add-on.
+
+- Якщо не видно верхню панель вкладок Chromium, залишайте `force_tab_bar: true` (за замовчуванням): add-on відкриває додаткову `about:blank` вкладку, щоб tab bar відображався завжди.
