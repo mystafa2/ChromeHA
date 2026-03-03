@@ -6,7 +6,7 @@ ENV LANG=C.UTF-8 \
     CHROME_USER_DATA_DIR=/data/chromium
 
 RUN set -eux; \
-    packages='chromium xvfb x11vnc fluxbox novnc websockify ttf-freefont dbus xauth'; \
+    packages='chromium xvfb x11vnc fluxbox novnc websockify ttf-freefont dbus xauth xrandr'; \
     attempt=1; \
     max_attempts=5; \
     while [ "${attempt}" -le "${max_attempts}" ]; do \

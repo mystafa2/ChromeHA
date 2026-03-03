@@ -41,6 +41,7 @@
 start_url: "https://www.home-assistant.io"
 window_width: 1280
 window_height: 720
+auto_window_size: true
 kiosk: false
 incognito: false
 disable_gpu: true
@@ -69,3 +70,5 @@ force_tab_bar: true
 
 - Якщо `kiosk: true`, вкладки за визначенням приховані. Коли `force_tab_bar: true`, add-on автоматично ігнорує kiosk-режим, щоб вкладки були видимі.
 - Для гарантованого відображення tab-strip add-on стартує Chromium з двома вкладками: `chrome://newtab/` і `start_url`.
+
+- Для автопідбору розміру при відкритті add-on використовується `auto_window_size: true` (default): Chromium стартує з `--start-maximized`, а VNC увімкнено з `-xrandr` для remote-resize.

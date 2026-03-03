@@ -8,6 +8,7 @@ KIOSK="$(bashio::config 'kiosk')"
 INCOGNITO="$(bashio::config 'incognito')"
 DISABLE_GPU="$(bashio::config 'disable_gpu')"
 VNC_PASSWORD="$(bashio::config 'vnc_password')"
+AUTO_WINDOW_SIZE="$(bashio::config 'auto_window_size')"
 RESET_PROFILE_ON_START="$(bashio::config 'reset_profile_on_start')"
 FORCE_TAB_BAR="$(bashio::config 'force_tab_bar')"
 
@@ -59,7 +60,7 @@ fi
 fluxbox >/tmp/fluxbox.log 2>&1 &
 WM_PID=$!
 
-x11vnc_args=(-display :0 -auth "${XAUTH_FILE}" -rfbport 5900 -forever -shared)
+x11vnc_args=(-display :0 -auth "${XAUTH_FILE}" -rfbport 5900 -forever -shared -xrandr)
 if [ -n "${VNC_PASSWORD}" ]; then
   x11vnc_args+=(-passwd "${VNC_PASSWORD}")
 else
@@ -94,10 +95,15 @@ CHROME_FLAGS=(
   --disable-dev-shm-usage
   --disable-translate
   --disable-features=TranslateUI
-  --window-size="${WIDTH},${HEIGHT}"
   --user-data-dir="${CHROME_USER_DATA_DIR}"
   --new-window
 )
+
+if bashio::var.true "${AUTO_WINDOW_SIZE}"; then
+  CHROME_FLAGS+=(--start-maximized)
+else
+  CHROME_FLAGS+=(--window-size="${WIDTH},${HEIGHT}")
+fi
 
 if bashio::var.true "${KIOSK}"; then
   if bashio::var.true "${FORCE_TAB_BAR}"; then
