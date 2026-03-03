@@ -45,6 +45,7 @@ kiosk: false
 incognito: false
 disable_gpu: true
 vnc_password: "homeassistant"
+reset_profile_on_start: false
 ```
 
 ## Збірка
@@ -56,3 +57,9 @@ vnc_password: "homeassistant"
 - `mcookie` може бути відсутній у деяких base image; у такому випадку cookie для Xauthority генерується fallback-методом через `/dev/urandom`.
 
 - Chromium запускається з `--no-sandbox --disable-setuid-sandbox`, оскільки add-on працює від root у контейнері HA; інакше браузер циклічно падає з помилкою `Running as root without --no-sandbox`.
+
+
+## Видимість вкладки в HA
+
+- У `config.json` встановлено `panel_admin: false`, тому вкладка add-on видима не лише адміну.
+- Якщо браузер відкривається без звичних вкладок (збережений app/session режим), увімкніть `reset_profile_on_start: true` і перезапустіть add-on.

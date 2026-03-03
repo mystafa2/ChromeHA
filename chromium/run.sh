@@ -8,8 +8,14 @@ KIOSK="$(bashio::config 'kiosk')"
 INCOGNITO="$(bashio::config 'incognito')"
 DISABLE_GPU="$(bashio::config 'disable_gpu')"
 VNC_PASSWORD="$(bashio::config 'vnc_password')"
+RESET_PROFILE_ON_START="$(bashio::config 'reset_profile_on_start')"
 
 mkdir -p "${CHROME_USER_DATA_DIR}" /tmp/chrome /tmp/.X11-unix
+
+if bashio::var.true "${RESET_PROFILE_ON_START}"; then
+  bashio::log.warning "Resetting Chromium profile on start"
+  rm -rf "${CHROME_USER_DATA_DIR}"/*
+fi
 
 if command -v chromium-browser >/dev/null 2>&1; then
   CHROMIUM_CMD="chromium-browser"
@@ -89,6 +95,7 @@ CHROME_FLAGS=(
   --disable-features=TranslateUI
   --window-size="${WIDTH},${HEIGHT}"
   --user-data-dir="${CHROME_USER_DATA_DIR}"
+  --new-window
 )
 
 if bashio::var.true "${KIOSK}"; then
