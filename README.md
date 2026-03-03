@@ -2,6 +2,8 @@
 
 Репозиторій Home Assistant add-on для запуску **Chromium** через Ingress/noVNC.
 
+> Для сумісності з різними версіями noVNC використовується `vnc.html` (а не `vnc_lite.html`).
+
 ## Що змінено для стабільного запуску
 
 Після проблем зі стартом `TigerVNC`/`x11vnc -auth guess` add-on переведено на стабільніший сценарій:
