@@ -45,7 +45,7 @@ kiosk: false
 incognito: false
 disable_gpu: true
 vnc_password: "homeassistant"
-reset_profile_on_start: false
+reset_profile_on_start: true
 force_tab_bar: true
 ```
 
@@ -65,4 +65,7 @@ force_tab_bar: true
 - У `config.json` встановлено `panel_admin: false`, тому вкладка add-on видима не лише адміну.
 - Якщо браузер відкривається без звичних вкладок (збережений app/session режим), увімкніть `reset_profile_on_start: true` і перезапустіть add-on.
 
-- Якщо не видно верхню панель вкладок Chromium, залишайте `force_tab_bar: true` (за замовчуванням): add-on відкриває додаткову `about:blank` вкладку, щоб tab bar відображався завжди.
+- Якщо не видно верхню панель вкладок Chromium, залишайте `force_tab_bar: true` (за замовчуванням): add-on відкриває додаткову `chrome://newtab/` вкладку, щоб tab bar відображався завжди.
+
+- Якщо `kiosk: true`, вкладки за визначенням приховані. Коли `force_tab_bar: true`, add-on автоматично ігнорує kiosk-режим, щоб вкладки були видимі.
+- Для гарантованого відображення tab-strip add-on стартує Chromium з двома вкладками: `chrome://newtab/` і `start_url`.

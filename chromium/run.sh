@@ -100,7 +100,11 @@ CHROME_FLAGS=(
 )
 
 if bashio::var.true "${KIOSK}"; then
-  CHROME_FLAGS+=(--kiosk)
+  if bashio::var.true "${FORCE_TAB_BAR}"; then
+    bashio::log.warning "kiosk=true conflicts with visible tabs; ignoring kiosk because force_tab_bar=true"
+  else
+    CHROME_FLAGS+=(--kiosk)
+  fi
 fi
 if bashio::var.true "${INCOGNITO}"; then
   CHROME_FLAGS+=(--incognito)
@@ -115,8 +119,8 @@ fi
 
 START_TARGETS=("${START_URL}")
 if bashio::var.true "${FORCE_TAB_BAR}"; then
-  # Open an extra blank tab so Chromium always shows tab strip in remote UI.
-  START_TARGETS=("about:blank" "${START_URL}")
+  # Open dedicated new-tab page + target URL to force visible tab strip.
+  START_TARGETS=("chrome://newtab/" "${START_URL}")
 fi
 
 cleanup() {
