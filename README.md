@@ -52,3 +52,5 @@ vnc_password: "homeassistant"
 ## Сумісність
 
 - `mcookie` може бути відсутній у деяких base image; у такому випадку cookie для Xauthority генерується fallback-методом через `/dev/urandom`.
+
+- Chromium запускається з `--no-sandbox --disable-setuid-sandbox`, оскільки add-on працює від root у контейнері HA; інакше браузер циклічно падає з помилкою `Running as root without --no-sandbox`.

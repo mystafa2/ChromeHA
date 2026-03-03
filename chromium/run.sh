@@ -80,6 +80,8 @@ websockify --web /usr/share/novnc 6080 127.0.0.1:5900 >/tmp/novnc.log 2>&1 &
 NOVNC_PID=$!
 
 CHROME_FLAGS=(
+  --no-sandbox
+  --disable-setuid-sandbox
   --no-first-run
   --no-default-browser-check
   --disable-dev-shm-usage
