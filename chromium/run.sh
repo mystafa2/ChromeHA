@@ -24,7 +24,11 @@ fi
 rm -f /tmp/.X0-lock /tmp/.X11-unix/X0
 
 XAUTH_FILE="/tmp/Xauthority"
-XAUTH_COOKIE="$(mcookie)"
+if command -v mcookie >/dev/null 2>&1; then
+  XAUTH_COOKIE="$(mcookie)"
+else
+  XAUTH_COOKIE="$(head -c 16 /dev/urandom | od -An -tx1 | tr -d " \n")"
+fi
 touch "${XAUTH_FILE}"
 xauth -f "${XAUTH_FILE}" add :0 . "${XAUTH_COOKIE}" >/dev/null 2>&1 || true
 

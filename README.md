@@ -48,3 +48,7 @@ vnc_password: "homeassistant"
 ## Збірка
 
 У Dockerfile лишено retry-логіку `apk add` (до 5 спроб), щоб переживати тимчасові TLS/дзеркальні збої під час завантаження великих пакетів Chromium.
+
+## Сумісність
+
+- `mcookie` може бути відсутній у деяких base image; у такому випадку cookie для Xauthority генерується fallback-методом через `/dev/urandom`.
