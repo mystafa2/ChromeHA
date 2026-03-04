@@ -12,6 +12,9 @@ AUTO_WINDOW_SIZE="$(bashio::config 'auto_window_size')"
 RESET_PROFILE_ON_START="$(bashio::config 'reset_profile_on_start')"
 FORCE_TAB_BAR="$(bashio::config 'force_tab_bar')"
 
+MAX_AUTO_WIDTH=3840
+MAX_AUTO_HEIGHT=2160
+
 mkdir -p "${CHROME_USER_DATA_DIR}" /tmp/chrome /tmp/.X11-unix
 
 if bashio::var.true "${RESET_PROFILE_ON_START}"; then
@@ -41,11 +44,11 @@ touch "${XAUTH_FILE}"
 xauth -f "${XAUTH_FILE}" add :0 . "${XAUTH_COOKIE}" >/dev/null 2>&1 || true
 
 if bashio::var.true "${AUTO_WINDOW_SIZE}"; then
-  bashio::log.info "Starting virtual display auto-resize mode ${WIDTH}x${HEIGHT}"
-  Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac -nolisten tcp -resizeable -auth "${XAUTH_FILE}" +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
+  bashio::log.info "Starting virtual display auto mode ${WIDTH}x${HEIGHT} (canvas ${MAX_AUTO_WIDTH}x${MAX_AUTO_HEIGHT})"
+  Xvfb :0 -screen 0 "${MAX_AUTO_WIDTH}x${MAX_AUTO_HEIGHT}x24" -ac -nolisten tcp -auth "${XAUTH_FILE}" +extension RANDR +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
 else
   bashio::log.info "Starting virtual display fixed mode ${WIDTH}x${HEIGHT}"
-  Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac -nolisten tcp -auth "${XAUTH_FILE}" +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
+  Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac -nolisten tcp -auth "${XAUTH_FILE}" +extension RANDR +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
 fi
 XVFB_PID=$!
 
@@ -62,6 +65,9 @@ if [ ! -S /tmp/.X11-unix/X0 ]; then
   exit 1
 fi
 
+if bashio::var.true "${AUTO_WINDOW_SIZE}" && command -v xrandr >/dev/null 2>&1; then
+  DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" xrandr --fb "${WIDTH}x${HEIGHT}" >/tmp/xrandr.log 2>&1 || true
+fi
 
 fluxbox >/tmp/fluxbox.log 2>&1 &
 WM_PID=$!

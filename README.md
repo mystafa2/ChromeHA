@@ -79,6 +79,6 @@ force_tab_bar: true
 Реалізація наближена до підходу embedded-browser:
 - noVNC працює в режимі `resize=remote`;
 - `x11vnc` запускається з `-xrandr` коли `auto_window_size: true`;
-- Xvfb запускається з `-resizeable`, тому розмір desktop реально змінюється під розмір клієнта, а не просто скейлиться картинка.
+- Xvfb стартує з великим canvas (`3840x2160`) у auto-режимі, далі початковий розмір виставляється через `xrandr --fb`, а noVNC (`resize=remote`) + `x11vnc -xrandr` виконують подальше підлаштування.
 
 `window_width/window_height` в auto-режимі — це стартовий розмір. Далі при відкритті/зміні вікна Ingress розмір підлаштовується автоматично.
