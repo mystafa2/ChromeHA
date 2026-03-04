@@ -12,9 +12,6 @@ AUTO_WINDOW_SIZE="$(bashio::config 'auto_window_size')"
 RESET_PROFILE_ON_START="$(bashio::config 'reset_profile_on_start')"
 FORCE_TAB_BAR="$(bashio::config 'force_tab_bar')"
 
-MAX_WIDTH=3840
-MAX_HEIGHT=2160
-
 mkdir -p "${CHROME_USER_DATA_DIR}" /tmp/chrome /tmp/.X11-unix
 
 if bashio::var.true "${RESET_PROFILE_ON_START}"; then
@@ -43,13 +40,8 @@ fi
 touch "${XAUTH_FILE}"
 xauth -f "${XAUTH_FILE}" add :0 . "${XAUTH_COOKIE}" >/dev/null 2>&1 || true
 
-if bashio::var.true "${AUTO_WINDOW_SIZE}"; then
-  bashio::log.info "Starting virtual display auto mode ${WIDTH}x${HEIGHT} (max ${MAX_WIDTH}x${MAX_HEIGHT})"
-  Xvfb :0 -screen 0 "${MAX_WIDTH}x${MAX_HEIGHT}x24" -ac -nolisten tcp -auth "${XAUTH_FILE}" +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
-else
-  bashio::log.info "Starting virtual display fixed mode ${WIDTH}x${HEIGHT}"
-  Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac -nolisten tcp -auth "${XAUTH_FILE}" +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
-fi
+bashio::log.info "Starting virtual display ${WIDTH}x${HEIGHT}"
+Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac -nolisten tcp -auth "${XAUTH_FILE}" +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
 XVFB_PID=$!
 
 for _ in $(seq 1 20); do
@@ -63,10 +55,6 @@ if [ ! -S /tmp/.X11-unix/X0 ]; then
   bashio::log.error "Xvfb did not create display socket :0"
   tail -n 120 /tmp/xvfb.log 2>/dev/null || true
   exit 1
-fi
-
-if bashio::var.true "${AUTO_WINDOW_SIZE}" && command -v xrandr >/dev/null 2>&1; then
-  DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" xrandr -s "${WIDTH}x${HEIGHT}" >/tmp/xrandr.log 2>&1 || true
 fi
 
 fluxbox >/tmp/fluxbox.log 2>&1 &
