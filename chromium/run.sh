@@ -40,8 +40,13 @@ fi
 touch "${XAUTH_FILE}"
 xauth -f "${XAUTH_FILE}" add :0 . "${XAUTH_COOKIE}" >/dev/null 2>&1 || true
 
-bashio::log.info "Starting virtual display ${WIDTH}x${HEIGHT}"
-Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac -nolisten tcp -auth "${XAUTH_FILE}" +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
+if bashio::var.true "${AUTO_WINDOW_SIZE}"; then
+  bashio::log.info "Starting virtual display auto-resize mode ${WIDTH}x${HEIGHT}"
+  Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac -nolisten tcp -resizeable -auth "${XAUTH_FILE}" +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
+else
+  bashio::log.info "Starting virtual display fixed mode ${WIDTH}x${HEIGHT}"
+  Xvfb :0 -screen 0 "${WIDTH}x${HEIGHT}x24" -ac -nolisten tcp -auth "${XAUTH_FILE}" +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
+fi
 XVFB_PID=$!
 
 for _ in $(seq 1 20); do
@@ -57,10 +62,14 @@ if [ ! -S /tmp/.X11-unix/X0 ]; then
   exit 1
 fi
 
+
 fluxbox >/tmp/fluxbox.log 2>&1 &
 WM_PID=$!
 
-x11vnc_args=(-display :0 -auth "${XAUTH_FILE}" -rfbport 5900 -forever -shared -xrandr)
+x11vnc_args=(-display :0 -auth "${XAUTH_FILE}" -rfbport 5900 -forever -shared)
+if bashio::var.true "${AUTO_WINDOW_SIZE}"; then
+  x11vnc_args+=(-xrandr)
+fi
 if [ -n "${VNC_PASSWORD}" ]; then
   x11vnc_args+=(-passwd "${VNC_PASSWORD}")
 else

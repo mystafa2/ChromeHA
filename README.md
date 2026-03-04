@@ -46,7 +46,7 @@ kiosk: false
 incognito: false
 disable_gpu: true
 vnc_password: "homeassistant"
-reset_profile_on_start: true
+reset_profile_on_start: false
 force_tab_bar: true
 ```
 
@@ -72,3 +72,13 @@ force_tab_bar: true
 - Для гарантованого відображення tab-strip add-on стартує Chromium з двома вкладками: `chrome://newtab/` і `start_url`.
 
 - Для автопідбору розміру при відкритті add-on використовується `auto_window_size: true` (default): Chromium стартує з `--start-maximized`, а VNC увімкнено з `-xrandr` для remote-resize.
+
+
+## Автомасштаб як в embedded-browser
+
+Реалізація наближена до підходу embedded-browser:
+- noVNC працює в режимі `resize=remote`;
+- `x11vnc` запускається з `-xrandr` коли `auto_window_size: true`;
+- Xvfb запускається з `-resizeable`, тому розмір desktop реально змінюється під розмір клієнта, а не просто скейлиться картинка.
+
+`window_width/window_height` в auto-режимі — це стартовий розмір. Далі при відкритті/зміні вікна Ingress розмір підлаштовується автоматично.
