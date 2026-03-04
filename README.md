@@ -72,13 +72,3 @@ force_tab_bar: true
 - Для гарантованого відображення tab-strip add-on стартує Chromium з двома вкладками: `chrome://newtab/` і `start_url`.
 
 - Для автопідбору розміру при відкритті add-on використовується `auto_window_size: true` (default): Chromium стартує з `--start-maximized`, а VNC увімкнено з `-xrandr` для remote-resize.
-
-
-## Автомасштаб як в embedded-browser
-
-Реалізація наближена до підходу embedded-browser:
-- noVNC працює в режимі `resize=remote`;
-- `x11vnc` запущено з `-xrandr`;
-- при `auto_window_size: true` Xvfb стартує з великим віртуальним полотном (`3840x2160`), а початковий розмір виставляється через `xrandr`.
-
-Це дозволяє автоматично підлаштовувати робочий розмір під вікно Ingress-клієнта, замість жорсткого `window_width/window_height`.
