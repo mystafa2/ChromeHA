@@ -48,6 +48,7 @@ disable_gpu: true
 vnc_password: "homeassistant"
 reset_profile_on_start: false
 force_tab_bar: true
+vnc_ncache: 10
 ```
 
 ## Збірка

@@ -11,11 +11,38 @@ VNC_PASSWORD="$(bashio::config 'vnc_password')"
 AUTO_WINDOW_SIZE="$(bashio::config 'auto_window_size')"
 RESET_PROFILE_ON_START="$(bashio::config 'reset_profile_on_start')"
 FORCE_TAB_BAR="$(bashio::config 'force_tab_bar')"
+VNC_NCACHE="$(bashio::config 'vnc_ncache')"
 
 MAX_AUTO_WIDTH=3840
 MAX_AUTO_HEIGHT=2160
 
 mkdir -p "${CHROME_USER_DATA_DIR}" /tmp/chrome /tmp/.X11-unix
+
+
+wait_for_socket() {
+  local socket_path="$1"
+  local timeout="${2:-20}"
+  for _ in $(seq 1 "${timeout}"); do
+    if [ -S "${socket_path}" ]; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+wait_for_port() {
+  local host="$1"
+  local port="$2"
+  local timeout="${3:-20}"
+  for _ in $(seq 1 "${timeout}"); do
+    if nc -z "${host}" "${port}" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
 
 if bashio::var.true "${RESET_PROFILE_ON_START}"; then
   bashio::log.warning "Resetting Chromium profile on start"
@@ -52,14 +79,7 @@ else
 fi
 XVFB_PID=$!
 
-for _ in $(seq 1 20); do
-  if [ -S /tmp/.X11-unix/X0 ]; then
-    break
-  fi
-  sleep 1
-done
-
-if [ ! -S /tmp/.X11-unix/X0 ]; then
+if ! wait_for_socket /tmp/.X11-unix/X0 20; then
   bashio::log.error "Xvfb did not create display socket :0"
   tail -n 120 /tmp/xvfb.log 2>/dev/null || true
   exit 1
@@ -81,18 +101,14 @@ if [ -n "${VNC_PASSWORD}" ]; then
 else
   x11vnc_args+=(-nopw)
 fi
+if [ "${VNC_NCACHE}" -gt 0 ] 2>/dev/null; then
+  x11vnc_args+=(-ncache "${VNC_NCACHE}" -ncache_cr)
+fi
 
 x11vnc "${x11vnc_args[@]}" >/tmp/x11vnc.log 2>&1 &
 VNC_PID=$!
 
-for _ in $(seq 1 20); do
-  if nc -z 127.0.0.1 5900 >/dev/null 2>&1; then
-    break
-  fi
-  sleep 1
-done
-
-if ! nc -z 127.0.0.1 5900 >/dev/null 2>&1; then
+if ! wait_for_port 127.0.0.1 5900 20; then
   bashio::log.error "x11vnc failed to start"
   tail -n 120 /tmp/x11vnc.log 2>/dev/null || true
   exit 1
