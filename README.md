@@ -59,6 +59,8 @@ vnc_ncache: 10
 
 Під час збірки add-on спочатку пробується pin-версія (`chromium=${CHROMIUM_VERSION}`), а якщо для поточної архітектури/дзеркала її ще немає — збірка автоматично переходить на `chromium` (latest available), щоб не ламати інсталяцію на `aarch64`.
 
+Для `BUILD_FROM` задано безпечний дефолт `ghcr.io/home-assistant/base:3.22`, тому Dockerfile не падає навіть якщо Supervisor не передав build-arg.
+
 ## Сумісність
 
 - `mcookie` може бути відсутній у деяких base image; у такому випадку cookie для Xauthority генерується fallback-методом через `/dev/urandom`.
