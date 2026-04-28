@@ -55,6 +55,8 @@ vnc_ncache: 10
 
 У Dockerfile лишено retry-логіку `apk add` (до 5 спроб), щоб переживати тимчасові TLS/дзеркальні збої під час завантаження великих пакетів Chromium.
 
+Поточна зафіксована версія пакета Chromium: `142.0.7444.59-r0` (Alpine `v3.22`, `community`). Для наступного оновлення достатньо змінити `CHROMIUM_VERSION` у `chromium/Dockerfile`.
+
 ## Сумісність
 
 - `mcookie` може бути відсутній у деяких base image; у такому випадку cookie для Xauthority генерується fallback-методом через `/dev/urandom`.

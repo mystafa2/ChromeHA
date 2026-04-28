@@ -1,4 +1,5 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base:latest
+ARG CHROMIUM_VERSION=142.0.7444.59-r0
 FROM ${BUILD_FROM}
 
 ENV LANG=C.UTF-8 \
@@ -6,7 +7,7 @@ ENV LANG=C.UTF-8 \
     CHROME_USER_DATA_DIR=/data/chromium
 
 RUN set -eux; \
-    packages='chromium xvfb x11vnc fluxbox novnc websockify ttf-freefont dbus xauth xrandr'; \
+    packages="chromium=${CHROMIUM_VERSION} xvfb x11vnc fluxbox novnc websockify ttf-freefont dbus xauth xrandr"; \
     attempt=1; \
     max_attempts=5; \
     while [ "${attempt}" -le "${max_attempts}" ]; do \
