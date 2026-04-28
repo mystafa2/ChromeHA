@@ -55,7 +55,9 @@ vnc_ncache: 10
 
 У Dockerfile лишено retry-логіку `apk add` (до 5 спроб), щоб переживати тимчасові TLS/дзеркальні збої під час завантаження великих пакетів Chromium.
 
-Поточна зафіксована версія пакета Chromium: `142.0.7444.59-r0` (Alpine `v3.22`, `community`). Для наступного оновлення достатньо змінити `CHROMIUM_VERSION` у `chromium/Dockerfile`.
+Поточна цільова версія пакета Chromium: `142.0.7444.59-r0` (Alpine `v3.22`, `community`). Для наступного оновлення достатньо змінити `CHROMIUM_VERSION` у `chromium/Dockerfile`.
+
+Під час збірки add-on спочатку пробується pin-версія (`chromium=${CHROMIUM_VERSION}`), а якщо для поточної архітектури/дзеркала її ще немає — збірка автоматично переходить на `chromium` (latest available), щоб не ламати інсталяцію на `aarch64`.
 
 ## Сумісність
 
