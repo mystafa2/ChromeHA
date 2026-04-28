@@ -1,13 +1,17 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/base:3.22
 ARG CHROMIUM_VERSION=142.0.7444.59-r0
 FROM ${BUILD_FROM}
+ARG CHROMIUM_VERSION
 
 ENV LANG=C.UTF-8 \
     DISPLAY=:0 \
     CHROME_USER_DATA_DIR=/data/chromium
 
 RUN set -eux; \
-    chromium_pkg="chromium=${CHROMIUM_VERSION}"; \
+    chromium_pkg="chromium"; \
+    if [ -n "${CHROMIUM_VERSION:-}" ]; then \
+      chromium_pkg="chromium=${CHROMIUM_VERSION}"; \
+    fi; \
     common_packages="xvfb x11vnc fluxbox novnc websockify ttf-freefont dbus xauth xrandr"; \
     attempt=1; \
     max_attempts=5; \
@@ -17,7 +21,7 @@ RUN set -eux; \
         break; \
       fi; \
       if [ "${attempt}" -eq 1 ]; then \
-        echo "[build] pinned Chromium ${CHROMIUM_VERSION} unavailable for this arch/repo, fallback to latest available"; \
+        echo "[build] pinned Chromium ${CHROMIUM_VERSION:-latest} unavailable for this arch/repo, fallback to latest available"; \
         chromium_pkg="chromium"; \
       fi; \
       if [ "${attempt}" -eq "${max_attempts}" ]; then \
