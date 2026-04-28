@@ -1,0 +1,34 @@
+{
+  "name": "Chromium Browser",
+  "version": "1.0.0",
+  "slug": "chromium_ha",
+  "description": "Запускає Chromium у Home Assistant через noVNC (Ingress)",
+  "url": "https://github.com/example/ChromeHA",
+  "arch": ["amd64", "aarch64", "armv7", "i386"],
+  "startup": "services",
+  "boot": "auto",
+  "init": false,
+  "ingress": true,
+  "ingress_port": 6080,
+  "panel_icon": "mdi:google-chrome",
+  "panel_title": "Chromium",
+  "map": ["share:rw"],
+  "options": {
+    "start_url": "https://www.home-assistant.io",
+    "window_width": 1280,
+    "window_height": 720,
+    "kiosk": false,
+    "incognito": false,
+    "disable_gpu": true,
+    "vnc_password": "homeassistant"
+  },
+  "schema": {
+    "start_url": "str",
+    "window_width": "int(640,3840)",
+    "window_height": "int(480,2160)",
+    "kiosk": "bool",
+    "incognito": "bool",
+    "disable_gpu": "bool",
+    "vnc_password": "password"
+  }
+}
