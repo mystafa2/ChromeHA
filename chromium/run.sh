@@ -123,6 +123,9 @@ CHROME_FLAGS=(
   --disable-setuid-sandbox
   --no-first-run
   --no-default-browser-check
+  --disable-breakpad
+  --disable-crash-reporter
+  --noerrdialogs
   --disable-dev-shm-usage
   --disable-translate
   --disable-features=TranslateUI
@@ -147,10 +150,7 @@ if bashio::var.true "${INCOGNITO}"; then
   CHROME_FLAGS+=(--incognito)
 fi
 if bashio::var.true "${DISABLE_GPU}"; then
-  CHROME_FLAGS+=(--disable-gpu --disable-software-rasterizer)
-fi
-if [ -e /dev/dri ]; then
-  CHROME_FLAGS+=(--use-gl=egl)
+  CHROME_FLAGS+=(--disable-gpu --use-gl=angle --use-angle=swiftshader)
 fi
 
 
@@ -168,7 +168,7 @@ trap cleanup SIGTERM SIGINT
 
 while true; do
   bashio::log.info "Starting Chromium at ${START_URL}"
-  DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_TARGETS[@]}" >/tmp/chromium.log 2>&1 &
+  env -u DBUS_SESSION_BUS_ADDRESS DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_TARGETS[@]}" >/tmp/chromium.log 2>&1 &
   CHROME_PID=$!
 
   wait "${CHROME_PID}" || true

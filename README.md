@@ -66,6 +66,7 @@ vnc_ncache: 10
 - `mcookie` може бути відсутній у деяких base image; у такому випадку cookie для Xauthority генерується fallback-методом через `/dev/urandom`.
 
 - Chromium запускається з `--no-sandbox --disable-setuid-sandbox`, оскільки add-on працює від root у контейнері HA; інакше браузер циклічно падає з помилкою `Running as root without --no-sandbox`.
+- Для контейнерної стабільності додано `--disable-breakpad --disable-crash-reporter --noerrdialogs`, а в режимі `disable_gpu: true` використовується `--use-gl=angle --use-angle=swiftshader` (без `--disable-software-rasterizer`), щоб уникати crash-loop у headless/virt середовищах.
 
 
 ## Видимість вкладки в HA
