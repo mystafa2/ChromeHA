@@ -118,9 +118,18 @@ bashio::log.info "Starting websockify/noVNC"
 websockify --web /usr/share/novnc 6080 127.0.0.1:5900 >/tmp/novnc.log 2>&1 &
 NOVNC_PID=$!
 
+if ! wait_for_port 127.0.0.1 6080 20; then
+  bashio::log.error "websockify/noVNC failed to start"
+  tail -n 120 /tmp/novnc.log 2>/dev/null || true
+  exit 1
+fi
+
 CHROME_FLAGS=(
   --no-sandbox
   --disable-setuid-sandbox
+  --disable-seccomp-filter-sandbox
+  --disable-gpu-sandbox
+  --no-zygote
   --no-first-run
   --no-default-browser-check
   --disable-breakpad
@@ -129,6 +138,7 @@ CHROME_FLAGS=(
   --disable-dev-shm-usage
   --disable-translate
   --disable-features=TranslateUI
+  --ozone-platform=x11
   --user-data-dir="${CHROME_USER_DATA_DIR}"
   --new-window
 )

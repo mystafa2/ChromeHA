@@ -67,6 +67,8 @@ vnc_ncache: 10
 
 - Chromium запускається з `--no-sandbox --disable-setuid-sandbox`, оскільки add-on працює від root у контейнері HA; інакше браузер циклічно падає з помилкою `Running as root without --no-sandbox`.
 - Для контейнерної стабільності додано `--disable-breakpad --disable-crash-reporter --noerrdialogs`, а в режимі `disable_gpu: true` використовується `--use-gl=angle --use-angle=swiftshader` (без `--disable-software-rasterizer`), щоб уникати crash-loop у headless/virt середовищах.
+- Для ARM/HA-контейнерів додано додаткові sandbox-сумісні прапори Chromium: `--disable-seccomp-filter-sandbox --disable-gpu-sandbox --no-zygote --ozone-platform=x11`, що зменшує ризик `Trace/breakpoint trap` під час старту.
+- Після старту `websockify` add-on тепер явно чекає порт `6080`; якщо noVNC не піднявся, сервіс завершується з діагностичним логом замість «тихого» Ingress fail.
 
 
 ## Видимість вкладки в HA
