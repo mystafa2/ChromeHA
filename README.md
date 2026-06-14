@@ -1,8 +1,18 @@
 # ChromeHA
 
-Репозиторій Home Assistant add-on для запуску **Chromium** через Ingress/noVNC.
+Репозиторій Home Assistant add-on для запуску повноцінного **Chromium** прямо в бічній панелі Home Assistant через Ingress/noVNC.
+
+**ChromeHA** дає локальний браузер усередині HA: вкладки, стартова сторінка, режими інкогніто/кіоск, українські назви налаштувань і автоматичне масштабування під вікно. Типовий розмір віддаленого екрана — **1920×1200**.
 
 > Для сумісності з різними версіями noVNC використовується `vnc.html` (а не `vnc_lite.html`).
+
+## Що робить add-on
+
+- Відкриває Chromium як Home Assistant Ingress-додаток без окремого зовнішнього порту.
+- Показує браузер у sidebar/panel Home Assistant.
+- Підтримує вкладки Chromium, стартовий URL, incognito, kiosk і reset профілю.
+- Має українські назви й описи options у Home Assistant.
+- Автоматично масштабує VNC/Chromium під доступний простір і за замовчуванням стартує з 1920×1200.
 
 ## Що змінено для стабільного запуску
 
@@ -25,6 +35,7 @@
 - `chromium/config.json` — конфіг add-on.
 - `chromium/Dockerfile` — збірка контейнера.
 - `chromium/run.sh` — запуск Xvfb + x11vnc + noVNC + Chromium.
+- `chromium/icon.png` / `chromium/logo.png` — піктограма й логотип add-on для Home Assistant.
 
 ## Встановлення
 
@@ -41,8 +52,8 @@
 
 ```yaml
 start_url: "https://www.home-assistant.io"
-window_width: 1280
-window_height: 720
+window_width: 1920
+window_height: 1200
 auto_window_size: true
 kiosk: false
 incognito: false

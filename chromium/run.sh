@@ -45,9 +45,9 @@ wait_for_port() {
 }
 
 fit_chromium_windows() {
-  # Keep Chromium matched to the current X screen. noVNC resize=remote can
-  # resize Xvfb after Chromium has started, otherwise leaving black unused
-  # desktop space below/around the browser window.
+  # Keep Chromium matched to the current X screen. This avoids black unused
+  # desktop space around the browser window when the Ingress/noVNC viewport
+  # is scaled or resized.
   if ! command -v xdpyinfo >/dev/null 2>&1 || ! command -v xdotool >/dev/null 2>&1; then
     return 0
   fi
@@ -198,8 +198,9 @@ fi
 
 START_TARGETS=("${START_URL}")
 if bashio::var.true "${FORCE_TAB_BAR}"; then
-  # Open dedicated new-tab page + target URL to force visible tab strip.
-  START_TARGETS=("chrome://newtab/" "${START_URL}")
+  # Open the configured start URL first and an extra new-tab page second to
+  # force a visible tab strip while keeping the start URL loaded immediately.
+  START_TARGETS=("${START_URL}" "chrome://newtab/")
 fi
 
 cleanup() {
