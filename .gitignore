@@ -1,0 +1,16 @@
+# Local/editor files
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Logs and temporary build artifacts
+*.log
+*.tmp
+tmp/
+
+# Home Assistant / Docker local artifacts
+*.tar
+*.tar.gz
+*.zip

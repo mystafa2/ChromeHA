@@ -29,7 +29,7 @@
 ## Встановлення
 
 1. **Settings → Add-ons → Add-on Store → ⋮ → Repositories**
-2. Додайте URL цього репозиторію.
+2. Додайте URL цього репозиторію: `https://github.com/mystafa2/ChromeHA`.
 3. Відкрийте add-on **Chromium Browser**.
 4. Натисніть **Install**.
 5. Відкрийте **Configuration** (за потреби), потім натисніть **Start**.
@@ -59,7 +59,7 @@ vnc_ncache: 10
 
 Під час збірки add-on спочатку пробується pin-версія (`chromium=${CHROMIUM_VERSION}`), а якщо для поточної архітектури/дзеркала її ще немає — збірка автоматично переходить на `chromium` (latest available), щоб не ламати інсталяцію на `aarch64`.
 
-Для `BUILD_FROM` задано безпечний дефолт `ghcr.io/home-assistant/base:3.22`, тому Dockerfile не падає навіть якщо Supervisor не передав build-arg.
+У `chromium/config.json` задано `build_from` для `amd64` і `aarch64`, щоб Supervisor явно передавав архітектурний Home Assistant base image. У Dockerfile також лишено безпечний дефолт `ghcr.io/home-assistant/base:3.22`, тому локальна Docker-збірка не падає навіть без Supervisor build-arg.
 
 ## Сумісність
 
