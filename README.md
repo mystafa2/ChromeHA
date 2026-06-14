@@ -37,6 +37,8 @@
 
 ## Опції add-on
 
+У Home Assistant з українською мовою інтерфейсу add-on показує перекладені назви й описи опцій з `chromium/translations/uk.yaml`.
+
 ```yaml
 start_url: "https://www.home-assistant.io"
 window_width: 1280
@@ -90,5 +92,6 @@ vnc_ncache: 10
 - noVNC працює в режимі `resize=remote`;
 - `x11vnc` запускається з `-xrandr` коли `auto_window_size: true`;
 - Xvfb стартує з великим canvas (`3840x2160`) у auto-режимі, далі початковий розмір виставляється через `xrandr --fb`, а noVNC (`resize=remote`) + `x11vnc -xrandr` виконують подальше підлаштування.
+- Chromium window додатково підганяється під поточні X11 dimensions через `xdpyinfo` + `xdotool`, щоб після зміни розміру Ingress не залишалась чорна невикористана область під браузером.
 
 `window_width/window_height` в auto-режимі — це стартовий розмір. Далі при відкритті/зміні вікна Ingress розмір підлаштовується автоматично.

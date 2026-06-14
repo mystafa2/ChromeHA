@@ -1,0 +1,34 @@
+configuration:
+  start_url:
+    name: Початкова сторінка
+    description: URL, який Chromium відкриває після запуску add-on.
+  window_width:
+    name: Ширина вікна
+    description: Початкова ширина вікна Chromium у пікселях. В auto-режимі використовується як стартовий розмір.
+  window_height:
+    name: Висота вікна
+    description: Початкова висота вікна Chromium у пікселях. В auto-режимі використовується як стартовий розмір.
+  kiosk:
+    name: Кіоск-режим
+    description: Запускати Chromium у кіоск-режимі без звичних елементів браузера. Якщо увімкнена примусова панель вкладок, кіоск-режим ігнорується.
+  incognito:
+    name: Інкогніто
+    description: Запускати Chromium у приватному режимі.
+  disable_gpu:
+    name: Вимкнути GPU
+    description: Використовувати програмний рендеринг для стабільнішої роботи в контейнері Home Assistant.
+  vnc_password:
+    name: Пароль VNC
+    description: Пароль для внутрішнього VNC-зʼєднання noVNC.
+  reset_profile_on_start:
+    name: Скидати профіль при старті
+    description: Очищати профіль Chromium під час кожного запуску add-on.
+  force_tab_bar:
+    name: Завжди показувати вкладки
+    description: Відкривати додаткову нову вкладку, щоб панель вкладок Chromium була видимою.
+  auto_window_size:
+    name: Автоматично підлаштовувати розмір
+    description: Дозволити noVNC/X11 підлаштовувати розмір віддаленого екрана під розмір вікна Home Assistant.
+  vnc_ncache:
+    name: Кеш VNC
+    description: Рівень ncache для x11vnc. Значення 0 вимикає кеш.

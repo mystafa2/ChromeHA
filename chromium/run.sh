@@ -44,6 +44,32 @@ wait_for_port() {
   return 1
 }
 
+fit_chromium_windows() {
+  # Keep Chromium matched to the current X screen. noVNC resize=remote can
+  # resize Xvfb after Chromium has started, otherwise leaving black unused
+  # desktop space below/around the browser window.
+  if ! command -v xdpyinfo >/dev/null 2>&1 || ! command -v xdotool >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local dimensions width height window_ids window_id
+  dimensions="$(DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" xdpyinfo 2>/dev/null | awk '/dimensions:/ {print $2; exit}')"
+  if [ -z "${dimensions}" ]; then
+    return 0
+  fi
+
+  width="${dimensions%x*}"
+  height="${dimensions#*x}"
+  window_ids="$(DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" xdotool search --onlyvisible --class chromium 2>/dev/null || true)"
+  if [ -z "${window_ids}" ]; then
+    return 0
+  fi
+
+  for window_id in ${window_ids}; do
+    DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" xdotool windowmove "${window_id}" 0 0 windowsize "${window_id}" "${width}" "${height}" >/dev/null 2>&1 || true
+  done
+}
+
 if bashio::var.true "${RESET_PROFILE_ON_START}"; then
   bashio::log.warning "Resetting Chromium profile on start"
   rm -rf "${CHROME_USER_DATA_DIR}"/*
@@ -181,7 +207,16 @@ while true; do
   env -u DBUS_SESSION_BUS_ADDRESS DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" "${CHROMIUM_CMD}" "${CHROME_FLAGS[@]}" "${START_TARGETS[@]}" >/tmp/chromium.log 2>&1 &
   CHROME_PID=$!
 
+  (
+    while kill -0 "${CHROME_PID}" 2>/dev/null; do
+      fit_chromium_windows
+      sleep 3
+    done
+  ) &
+  FIT_PID=$!
+
   wait "${CHROME_PID}" || true
+  kill "${FIT_PID:-}" 2>/dev/null || true
   bashio::log.warning "Chromium exited. Restart in 2s"
   tail -n 80 /tmp/chromium.log 2>/dev/null || true
   sleep 2

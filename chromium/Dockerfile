@@ -12,7 +12,7 @@ RUN set -eux; \
     if [ -n "${CHROMIUM_VERSION:-}" ]; then \
       chromium_pkg="chromium=${CHROMIUM_VERSION}"; \
     fi; \
-    common_packages="xvfb x11vnc fluxbox novnc websockify ttf-freefont dbus xauth xrandr"; \
+    common_packages="xvfb x11vnc fluxbox novnc websockify ttf-freefont dbus xauth xrandr xdpyinfo xdotool"; \
     attempt=1; \
     max_attempts=5; \
     while [ "${attempt}" -le "${max_attempts}" ]; do \
