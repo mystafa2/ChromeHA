@@ -115,7 +115,13 @@ if bashio::var.true "${AUTO_WINDOW_SIZE}" && command -v xrandr >/dev/null 2>&1; 
   DISPLAY=:0 XAUTHORITY="${XAUTH_FILE}" xrandr --fb "${WIDTH}x${HEIGHT}" >/tmp/xrandr.log 2>&1 || true
 fi
 
-fluxbox >/tmp/fluxbox.log 2>&1 &
+mkdir -p /tmp/fluxbox
+cat > /tmp/fluxbox/init <<'EOF'
+session.screen0.toolbar.visible: false
+session.screen0.fullMaximization: true
+session.screen0.edgeSnapThreshold: 0
+EOF
+fluxbox -rc /tmp/fluxbox/init >/tmp/fluxbox.log 2>&1 &
 WM_PID=$!
 
 x11vnc_args=(-display :0 -auth "${XAUTH_FILE}" -rfbport 5900 -forever -shared)

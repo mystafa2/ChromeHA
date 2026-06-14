@@ -50,7 +50,7 @@ disable_gpu: true
 vnc_password: "homeassistant"
 reset_profile_on_start: false
 force_tab_bar: true
-vnc_ncache: 10
+vnc_ncache: 0
 ```
 
 ## Збірка
@@ -89,9 +89,10 @@ vnc_ncache: 10
 ## Автомасштаб як в embedded-browser
 
 Реалізація наближена до підходу embedded-browser:
-- noVNC працює в режимі `resize=remote`;
+- noVNC працює в режимі `resize=scale`, щоб viewport Home Assistant не показував зайву чорну область навколо VNC canvas;
 - `x11vnc` запускається з `-xrandr` коли `auto_window_size: true`;
-- Xvfb стартує з великим canvas (`3840x2160`) у auto-режимі, далі початковий розмір виставляється через `xrandr --fb`, а noVNC (`resize=remote`) + `x11vnc -xrandr` виконують подальше підлаштування.
+- Xvfb стартує з великим canvas (`3840x2160`) у auto-режимі, далі початковий розмір виставляється через `xrandr --fb`, а Chromium window підганяється під поточні X11 dimensions.
 - Chromium window додатково підганяється під поточні X11 dimensions через `xdpyinfo` + `xdotool`, щоб після зміни розміру Ingress не залишалась чорна невикористана область під браузером.
+- `x11vnc ncache` за замовчуванням вимкнено (`vnc_ncache: 0`), бо cache framebuffer може виглядати як дублікати панелі/чорна область під Chromium у noVNC.
 
 `window_width/window_height` в auto-режимі — це стартовий розмір. Далі при відкритті/зміні вікна Ingress розмір підлаштовується автоматично.
