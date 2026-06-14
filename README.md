@@ -55,11 +55,11 @@ vnc_ncache: 10
 
 У Dockerfile лишено retry-логіку `apk add` (до 5 спроб), щоб переживати тимчасові TLS/дзеркальні збої під час завантаження великих пакетів Chromium.
 
-Поточна цільова версія пакета Chromium: `142.0.7444.59-r0` (Alpine `v3.22`, `community`). Для наступного оновлення достатньо змінити `CHROMIUM_VERSION` у `chromium/Dockerfile` (цей ARG перевизначається після `FROM`, щоб коректно працювати в Docker build stage).
+Поточна цільова версія пакета Chromium: `149.0.7827.53-r0` (Alpine `v3.23`, `community`). Для наступного оновлення достатньо змінити `CHROMIUM_VERSION` у `chromium/Dockerfile` (цей ARG перевизначається після `FROM`, щоб коректно працювати в Docker build stage).
 
 Під час збірки add-on спочатку пробується pin-версія (`chromium=${CHROMIUM_VERSION}`), а якщо для поточної архітектури/дзеркала її ще немає — збірка автоматично переходить на `chromium` (latest available), щоб не ламати інсталяцію на `aarch64`.
 
-У `chromium/config.json` задано `build_from` для `amd64` і `aarch64`, щоб Supervisor явно передавав архітектурний Home Assistant base image. У Dockerfile також лишено безпечний дефолт `ghcr.io/home-assistant/base:3.22`, тому локальна Docker-збірка не падає навіть без Supervisor build-arg.
+У `chromium/config.json` задано `build_from` для `amd64` і `aarch64`, щоб Supervisor явно передавав архітектурний Home Assistant base image. У Dockerfile також лишено безпечний дефолт `ghcr.io/home-assistant/base:3.23`, тому локальна Docker-збірка не падає навіть без Supervisor build-arg.
 
 ## Сумісність
 
